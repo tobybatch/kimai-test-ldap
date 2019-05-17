@@ -1,0 +1,32 @@
+version: '2'
+services:
+
+    ldap:
+        image: osixia/openldap:1.2.2
+        environment:
+            LDAP_ORGANISATION: Kimai test LDAP
+            LDAP_DOMAIN: kimai.net
+            LDAP_ADMIN_PASSWORD: kitten
+            LDAP_BASE_DN: dc=kimai,dc=net
+        volumes:
+            - ./export.ldif:/container/service/slapd/assets/config/bootstrap/ldif/50-bootstrap.ldif
+            - ./ldap:/var/lib/ldap
+            - ./slapd:/etc/ldap/slapd.d
+        ports:
+            - 389:389
+            - 636:636
+        hostname: ldap
+        command: --copy-service
+        restart: always
+        # command: --copy-service --loglevel debug
+
+    ldapadmin:
+        image: dinkel/phpldapadmin
+        links:
+            - ldap:openldap
+        ports:
+            - 8080:80
+        environment:
+            LDAP_SERVER_HOST: ldap
+            LDAP_SERVER_PORT: 389
+        restart: always
